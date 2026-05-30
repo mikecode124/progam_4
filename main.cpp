@@ -14,7 +14,7 @@
 
 using namespace std;
 
-// Representing a directed edge in the residual graph.
+// Representing a directed edge in the graph.
 struct Edge {
     // destination node
     int to;
