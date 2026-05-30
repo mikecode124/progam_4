@@ -1,3 +1,9 @@
+/*
+ *  Student:     Michael Kim
+ *  Class:       CSS 449 
+ *  Assignment:  Project 3
+ *  Date:        5/29/2026
+ */
 
 #include <iostream>
 #include <climits>
@@ -7,7 +13,6 @@
 #include <vector>
 
 using namespace std;
-
 
 // Representing a directed edge in the residual graph.
 struct Edge {
@@ -60,6 +65,8 @@ private:
     bool bfs() {
         level.assign(graph.size(), -1);
         level[source] = 0;
+
+        // typical queue based bfs
         queue<int> q;
         q.push(source);
 
@@ -77,18 +84,22 @@ private:
     }
 
     // dfs: pushes flow from u toward sink along the level graph.
-    //      iter[u] skips dead edges so each edge is visited at most once
-    //      per phase, keeping the overall DFS at O(n^2) per phase.
+    //  iter[u] ensures each node is only visited once per phase, 
+    //  ensuring O(n^2) run.
     int dfs(int u, int pushed) {
         if (u == sink) return pushed;
 
         for (int& i = iter[u]; i < (int)graph[u].size(); i++) {
             Edge& e = graph[u][i];
+
+            // iterate v as parameter argument for recursive call
             int v = e.to;
 
             if (e.capacity > 0 && level[v] == level[u] + 1) {
+                // the recursive traversal / advance() call
                 int flow = dfs(v, min(pushed, e.capacity));
                 if (flow > 0) {
+                    // "deletion" is represented in the edge's flow being reduced to 0
                     e.capacity -= flow;
                     graph[v][e.revIndex].capacity += flow;
                     return flow;
@@ -99,19 +110,23 @@ private:
         return 0;
     }
 
-    // runMaxFlow: traverses directed edges, BFS, selects a match (edge), 
-    //              then traverses selected edge DFS
+    // runMaxFlow: uses bfs() to build level graph, then runs dfs() to simulate flow 
+    //              being pushed down all augmenting paths. Repeats until no augmenting
+    //              paths remain.
     int runMaxFlow() {
         int totalFlow = 0;
 
+        // true as long as bfs() determines it can find a way to the sink ( level[sink] > 0 )
         while (bfs()) {
             iter.assign(graph.size(), 0);
             int flow;
+
+            // true as long as dfs() finds augmenting path
             while ((flow = dfs(source, INT_MAX)) > 0) {
                 totalFlow += flow;
             }
         }
-
+        // total flow == total bipartite matches
         return totalFlow;
     }
 
